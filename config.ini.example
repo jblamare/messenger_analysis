@@ -1,0 +1,5 @@
+[paths]
+# Directory in which to find the messages
+root_dir = <path_to_message_folder>/messages/inbox
+# folder to analyze inside the directory above
+message_folder = <name>_<id>

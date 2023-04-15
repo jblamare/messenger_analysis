@@ -1,3 +1,4 @@
+import configparser
 import json
 import os
 import string
@@ -11,7 +12,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from wordcloud import STOPWORDS, WordCloud
 
-root_dir = "C:/Users/jblam/Downloads/messages/inbox"
 stop_words = set(
     stopwords.words("english")
     + list(STOPWORDS)
@@ -22,7 +22,7 @@ stop_words = set(
 )
 
 
-def parse_jsons(folder):
+def parse_jsons(root_dir, folder):
     messages = []
     for file in sorted(
         os.listdir(os.path.join(root_dir, folder)), reverse=True
@@ -66,10 +66,9 @@ def get_stats(messages):
                 "content"
             ].endswith(" to your message "):
                 continue
-            if message["content"] in [
-                "The video chat ended.",
-                "You missed a video chat with Ambassador of fun <3.",
-            ]:
+            if message["content"] == "The video chat ended." or message[
+                "content"
+            ].startswith("You missed a video chat with "):
                 continue
             words = word_tokenize(message["content"].lower())
             stats[sender]["messages"].append(message["content"])
@@ -197,7 +196,7 @@ def print_stats(stats):
     print_date_histogram(stats, "gifs_timestamps", date_range, "GIFs")
 
 
-def get_all_messages():
+def get_all_messages(root_dir):
     all_timestamps = []
     for folder in sorted(os.listdir(root_dir)):
         folder_messages = parse_jsons(folder)
@@ -208,15 +207,19 @@ def get_all_messages():
         datetime.fromtimestamp(max(all_timestamps) / 1000).date(),
     )
     print_date_histogram(
-        {"JB": {"timestamps": all_timestamps}},
+        {"Me": {"timestamps": all_timestamps}},
         "timestamps",
         date_range,
-        "All of JB's messages",
+        "All of my messages",
     )
 
 
 if __name__ == "__main__":
-    messages = parse_jsons("emmyeatonkappes_10218874229560880")
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    messages = parse_jsons(
+        config["paths"]["root_dir"], config["paths"]["message_folder"]
+    )
     stats = get_stats(messages)
     print_stats(stats)
-    # get_all_messages()
+    # get_all_messages(config["paths"]["root_dir"])
